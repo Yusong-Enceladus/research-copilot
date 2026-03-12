@@ -99,6 +99,8 @@ These skills compose into a full research lifecycle. The two workflows can be us
 
 > 💡 **One-command shortcut:** `/idea-discovery "your research direction"` runs this entire workflow automatically.
 
+> 🔄 **Human-in-the-loop:** Each phase pauses for your feedback. Not happy with the ideas? Tell it what's missing — it will refine the prompt and regenerate. You stay in control until you explicitly approve.
+
 > ⚙️ Pilot experiment budgets (max hours, timeout, GPU budget) are configurable — see [Customization](#%EF%B8%8F-customization).
 
 📝 **Blog post:** [Claude Code 两月 NeurIPS 指北](http://xhslink.com/o/7IvAJQ41IBA)
