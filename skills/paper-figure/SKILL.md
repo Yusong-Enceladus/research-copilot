@@ -46,6 +46,28 @@ If no PAPER_PLAN.md exists, scan for data files and ask the user which figures t
 
 ## Workflow
 
+### Step 0: Data Source Validation (NEW — BLOCKING)
+
+Before generating ANY figure, verify the data source:
+
+1. **Check for oracle contamination**:
+   ```bash
+   grep -rn "oracle_mode.*True\|mock_mode\|oracle_success_prob" results/ --include="*.json" | head -5
+   ```
+   If found: these results MUST be labeled as "Oracle Upper Bound" in every figure/table caption. They MUST NOT be the primary data for any main result figure.
+
+2. **Check for real simulation frames**:
+   ```bash
+   find figures/viz* results/ -name "*.png" -o -name "*.jpg" | head -10
+   # Verify resolution: real sim frames are typically 256x256+
+   python -c "from PIL import Image; img=Image.open('figures/viz/frame.png'); print(img.size)"
+   ```
+   If no real frames exist: **BLOCK figure generation for qualitative results.** Charts from oracle data may be generated but must be clearly labeled.
+
+3. **Check data freshness**:
+   - Results must come from experiments run AFTER the latest code changes
+   - Stale results from earlier oracle runs must not be reused as primary evidence
+
 ### Step 1: Read Figure Plan
 
 Parse the Figure Plan table from PAPER_PLAN.md:

@@ -45,6 +45,26 @@ grep -rn "oracle_mode\|mock_mode\|oracle_success_prob\|random.*success\|simulate
 
 **If FAIL**: Identify which evaluation runs used oracle mode. Those results MUST be clearly labeled as "oracle upper bound" in the paper, NOT as primary results. The pipeline MUST produce real-execution results before proceeding.
 
+Also scan RESULTS files for oracle contamination:
+```bash
+# Check if any results JSON files contain oracle_mode=True
+python -c "
+import json, glob
+for f in glob.glob('results/**/*.json', recursive=True):
+    with open(f) as fh:
+        try:
+            data = json.load(fh)
+        except: continue
+    episodes = data.get('episodes', [data] if isinstance(data, dict) else data)
+    for ep in (episodes[:3] if isinstance(episodes, list) else []):
+        if ep.get('oracle_success_prob') or ep.get('mock_mode') or ep.get('oracle_mode'):
+            print(f'ORACLE CONTAMINATION: {f} — oracle_success_prob={ep.get(\"oracle_success_prob\")}')
+            break
+"
+```
+
+**If oracle contamination is found in results:** Those results MUST be moved to a `results/oracle_supplementary/` directory and clearly labeled. They MUST NOT be in `results/` alongside real results.
+
 ### Check 3: Simulation Actually Renders
 
 ```bash

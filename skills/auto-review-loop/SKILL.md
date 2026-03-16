@@ -92,6 +92,12 @@ mcp__codex__codex:
 
     Be brutally honest. If results are from oracle mode, the maximum possible score is 3/10.
     A paper with no real execution data is NOT submittable regardless of framework quality.
+
+    SCORING CONSTRAINTS:
+    - If results are from oracle/mock execution: MAX score = 3/10, regardless of framework quality.
+    - If no actual simulation frames exist: MAX score = 2/10.
+    - If no trained model was used: MAX score = 1/10.
+    - Only real model inference on real simulation with actual rendered frames qualifies for scores above 5/10.
 ```
 
 If this is round 2+, use `mcp__codex__codex-reply` with the saved threadId to maintain conversation context.

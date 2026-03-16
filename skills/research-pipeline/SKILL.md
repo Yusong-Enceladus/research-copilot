@@ -84,7 +84,32 @@ Check 2: Can the model run inference on the target environment?
 - If using pretrained model: verify the checkpoint loads and produces reasonable outputs on one example.
 - DO NOT skip to evaluation with oracle mode. Oracle results are supplementary upper bounds, not primary evidence.
 
-**If PASS:** Proceed to Stage 3.
+**If PASS:** Proceed to Gate 2b.
+
+---
+
+### 🚦 Gate 2b: Pilot Experiment (NEW)
+
+**Before deploying full-scale experiments, run ONE pilot episode:**
+
+1. Load the actual trained/pretrained model
+2. Run one episode on the actual environment with rendering enabled
+3. Verify:
+   - Model produces non-trivial actions (not zeros, not random)
+   - Environment renders actual RGB frames (saved to disk)
+   - At least partial task completion occurs
+   - Results are saved in the expected JSON format
+4. Save the pilot frame as proof: `figures/viz/pilot_frame.png`
+
+**If the pilot fails:** Debug the integration. Common issues:
+- Model expects different observation format than env provides
+- Action space mismatch (dimensions, normalization)
+- Rendering not configured (MUJOCO_GL, EGL setup)
+- HuggingFace offline mode not set on compute nodes
+
+**If the pilot succeeds:** Proceed to Stage 3 with confidence that the full evaluation will produce real results.
+
+This gate prevents wasting hours of GPU time on broken integrations.
 
 ---
 

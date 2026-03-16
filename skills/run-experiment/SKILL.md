@@ -20,6 +20,42 @@ Read the project's `CLAUDE.md` to determine the experiment environment:
 
 If no server info is found in `CLAUDE.md`, ask the user.
 
+### Step 1b: Environment Pre-flight (NEW)
+
+Before running any experiment, verify the compute environment works:
+
+1. **Network**: Check if the compute node has internet access. If not (typical for HPC), set:
+   ```bash
+   export HF_HUB_OFFLINE=1
+   export TRANSFORMERS_OFFLINE=1
+   unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY all_proxy
+   ```
+
+2. **Rendering**: For embodied AI / robotics tasks, verify rendering works:
+   ```bash
+   python -c "import mujoco; print('MuJoCo', mujoco.__version__)"
+   MUJOCO_GL=egl python -c "
+   import mujoco, numpy as np
+   m = mujoco.MjModel.from_xml_string('<mujoco><worldbody><light/><geom type=\"plane\" size=\"1 1 .1\"/></worldbody></mujoco>')
+   d = mujoco.MjData(m)
+   r = mujoco.Renderer(m, 256, 256)
+   mujoco.mj_step(m, d)
+   r.update_scene(d)
+   img = r.render()
+   assert img.shape == (256, 256, 3), f'Render failed: {img.shape}'
+   print('EGL rendering OK:', img.shape)
+   "
+   ```
+
+3. **Model loading**: Verify the trained model can be loaded:
+   ```bash
+   python -c "import torch; model = torch.load('checkpoint.pt', map_location='cpu'); print('Model loaded OK')"
+   ```
+
+4. **Pilot run**: Execute ONE episode with the actual model before launching full evaluation. If the pilot fails, DO NOT submit the full batch job.
+
+**If any pre-flight check fails, STOP and fix the environment before proceeding.**
+
 ### Step 2: Pre-flight Check
 
 Check GPU availability on the target machine:
@@ -78,6 +114,24 @@ ssh <server> "screen -ls"
 
 **Local:**
 Check process is running and GPU is allocated.
+
+### Step 5b: Pilot Verification (NEW)
+
+After deploying code but BEFORE launching full evaluation:
+
+1. Run exactly ONE episode with the actual model on the actual environment
+2. Verify the episode produces:
+   - Non-zero reward or meaningful completion metric
+   - At least one RGB frame saved (if robotics)
+   - Results JSON with per-step data
+3. If the pilot fails or produces empty/zero results, DO NOT launch full evaluation.
+
+Example pilot command:
+```bash
+python eval.py --num-trials 1 --save-frames --verbose 2>&1 | tail -20
+# Check: does it show actual model inference? Not "oracle" or "mock"?
+ls figures/viz/  # Check: do actual image files exist?
+```
 
 ### Step 6: Feishu Notification (if configured)
 
