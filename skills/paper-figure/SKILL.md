@@ -19,8 +19,12 @@ Generate all figures and tables for a paper based on: **$ARGUMENTS**
 | **Architecture/pipeline diagrams** | ❌ No — manual | Model architecture, data flow diagrams, system overviews. At best can generate a rough TikZ skeleton, but **expect to draw these yourself** using tools like draw.io, Figma, or TikZ |
 | **Generated image grids** | ❌ No — manual | Grids of generated samples (e.g., GAN/diffusion outputs). These come from running your model, not from this skill |
 | **Photographs / screenshots** | ❌ No — manual | Real-world images, UI screenshots, qualitative examples |
+| **Simulation renders** | ❌ No — from experiments | Actual RGB frames from MuJoCo/Isaac/real robot. MUST be captured during real experiment runs, not mocked. |
+| **Execution trace composites** | ✅ Partially | Can composite existing sim frames into multi-panel figures with annotations |
 
 **In practice:** For a typical ML paper, this skill handles ~60% of figures (all data plots + tables). The remaining ~40% (hero figure, architecture diagram, qualitative results) need to be created manually and placed in `figures/` before running `/paper-write`. The skill will detect these as "existing figures" and preserve them.
+
+**CRITICAL for robotics/embodied AI papers:** The paper MUST include actual simulation or real-world frames showing the system running. These frames come from running experiments with rendering enabled (e.g., `MUJOCO_GL=egl`), NOT from image generation models or PIL drawing. If `figures/viz/` is empty or contains only schematic diagrams, BLOCK the pipeline and direct the user to re-run experiments with frame capture.
 
 ## Constants
 

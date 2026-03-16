@@ -78,12 +78,20 @@ mcp__codex__codex:
 
     Please act as a senior ML reviewer (NeurIPS/ICML level).
 
+    REALITY CHECK (answer these first):
+    A. Are the reported results from actual model inference or from an oracle/mock?
+    B. Does the paper include actual simulation/real-world frames showing the system running?
+    C. Is there a trained model checkpoint, or only scaffold code?
+    If ANY answer is "oracle/mock/no", flag this as a CRITICAL issue that must be fixed before scoring.
+
+    Then:
     1. Score this work 1-10 for a top venue
     2. List remaining critical weaknesses (ranked by severity)
     3. For each weakness, specify the MINIMUM fix (experiment, analysis, or reframing)
     4. State clearly: is this READY for submission? Yes/No/Almost
 
-    Be brutally honest. If the work is ready, say so clearly.
+    Be brutally honest. If results are from oracle mode, the maximum possible score is 3/10.
+    A paper with no real execution data is NOT submittable regardless of framework quality.
 ```
 
 If this is round 2+, use `mcp__codex__codex-reply` with the saved threadId to maintain conversation context.

@@ -40,6 +40,22 @@ This pipeline accepts one of:
 
 The more detailed the input (especially figure descriptions and quantitative results), the better the output.
 
+## Pre-Flight: Experiment Validation Gate
+
+**BEFORE starting the paper pipeline, run `/validate-experiment` to verify:**
+
+1. Results come from real model execution (not oracle/mock)
+2. Actual simulation frames exist for visualization
+3. A trained model checkpoint exists
+
+**If validation fails, DO NOT proceed.** Fix the experiments first. A paper built on fake data wastes everyone's time and will be immediately rejected.
+
+```
+/validate-experiment [project-dir]
+```
+
+Only proceed to Phase 1 if the validation report says **PROCEED**.
+
 ## Pipeline
 
 ### Phase 1: Paper Plan
