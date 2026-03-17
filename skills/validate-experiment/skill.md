@@ -81,12 +81,44 @@ grep -rn "obs = {}\|env = None\|_mock_mode\|# Mock:" scripts/ envs/ --include="*
 ### Check 4: Visualization Shows Real System Output
 
 ```bash
-# Check for actual rendered frames (not PIL-generated diagrams)
-find figures/ results/ -name "*.png" -o -name "*.jpg" -exec identify {} \; 2>/dev/null | head -10
-# Check image dimensions — real sim frames are typically 256x256 or larger
+# Check for actual rendered frames (not PIL-generated diagrams or blank zeros)
+# CRITICAL: Check FILE SIZE, not just existence. Blank/zero images compress to <500 bytes.
+# Real 256x256 RGB simulation renders are typically 10KB-200KB.
+echo "=== Frame file size analysis ==="
+find figures/ -name "*.png" -size +10k 2>/dev/null | wc -l
+echo "real frames (>10KB)"
+find figures/ -name "*.png" -size -1k 2>/dev/null | wc -l
+echo "suspicious frames (<1KB — likely blank/zeros)"
+find figures/ -name "*.png" -size +10k 2>/dev/null | head -3 | xargs ls -la
+
+# Verify content is NOT all-black (the silent failure that burned us)
+python -c "
+from PIL import Image
+import numpy as np, glob
+frames = sorted(glob.glob('figures/**/*.png', recursive=True))[:5]
+for f in frames:
+    img = np.array(Image.open(f))
+    mean_val = img.mean()
+    print(f'{f}: size={img.shape}, mean_pixel={mean_val:.1f}, ' +
+          ('BLANK/BLACK' if mean_val < 1.0 else 'HAS CONTENT'))
+"
 ```
 
-**PASS**: Figures directory contains actual simulation renders (robot workspace images with objects, robot arm, etc.) of reasonable resolution.
+**PASS**:
+- Frames >10KB exist (real renders are 10-200KB each)
+- Frame pixel mean > 1.0 (not all-black zeros)
+- Frames show actual robot workspace content
+
+**FAIL (FILE SIZE)**:
+- All frames <1KB = images are blank zeros (np.zeros was saved instead of real renders)
+- This is a CRITICAL bug: the VLA is also receiving blank images
+- The experiment results AND the visualization are BOTH invalid
+- BLOCK pipeline — fix the observation passing and re-run ALL experiments
+
+**FAIL (CONTENT)**:
+- Frames exist at correct size but show only black/uniform color
+- Check: is the rendering backend (EGL/OSMesa) working?
+- Check: is `agentview_image` being correctly extracted from LIBERO obs?
 
 **FAIL**: Only schematic diagrams, PIL-generated rectangles, or matplotlib charts exist. No actual simulation output.
 
