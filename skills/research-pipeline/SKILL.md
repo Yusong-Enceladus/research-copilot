@@ -260,9 +260,22 @@ Internally: `/paper-plan` → `/paper-figure` → `/paper-write` → `/paper-com
 
 ## Key Rules
 
-- **ALL FOUR GATES ARE MANDATORY.** Skipping a gate produces fake research.
+- **ALL FOUR GATES ARE MANDATORY AND BLOCKING.** Skipping a gate produces fake research.
+- **NO SHORTCUTS.** If a gate check fails, you MUST fix it before proceeding — not suggest "we can skip it" or "we can add it later." There is no "later" — if it's not done now, it won't be done.
+- **NO PARTIAL COMPLETION.** If the experiment plan calls for N baselines, run ALL N baselines. Do not run 4 of 6 and say "the remaining two won't change the story." You don't know that until you have the data.
+- **NO PREMATURE STAGE TRANSITIONS.** Do not suggest moving to the next stage while the current stage has incomplete work. Complete ALL experiments, ALL frame captures, ALL downloads, ALL validations before proceeding.
+- **ENFORCEMENT — STAGE TRANSITION CHECKLIST**: Before ANY stage transition, you MUST explicitly output this checklist and verify every item. If ANY item is incomplete, the transition is BLOCKED:
+  ```
+  STAGE TRANSITION CHECKLIST:
+  [ ] All planned experiments completed (list each)
+  [ ] All results downloaded locally
+  [ ] All simulation frames downloaded
+  [ ] /validate-experiment passed (no oracle contamination, real frames exist)
+  [ ] Failed experiments fixed and re-run (not skipped)
+  [ ] Multi-model comparison complete (if applicable)
+  ```
 - **Oracle mode is supplementary, not primary.** Never build a paper on oracle results alone.
 - **Real simulation frames are required.** A robotics paper without robot images is not publishable.
 - **The reviewer (GPT-5.4) must be told whether results are real or oracle.** Hiding this from the reviewer produces inflated scores.
 - **If training takes too long**, use a pretrained model and fine-tune, or use a simpler task. Do not substitute oracle mode for real execution.
-- **Fail gracefully**: If Gate 2 or 3 fails, report what's missing and estimate the cost to fix it. Let the user decide.
+- **Fail gracefully**: If Gate 2 or 3 fails, report what's missing and estimate the cost to fix it. Let the user decide — but DO NOT decide for them by silently skipping.
