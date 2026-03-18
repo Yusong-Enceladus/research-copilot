@@ -49,9 +49,39 @@ Internally: `/research-lit` → `/idea-creator` → `/novelty-check` → `/resea
 
 ---
 
+### 🚦 Gate 1b: Idea Validation (MANDATORY — added after GraphVLA failure)
+
+**BEFORE any implementation, validate the idea's core assumptions.**
+
+```
+/idea-validation "[selected idea description]"
+```
+
+This gate:
+1. **Extracts core assumptions** — what MUST be true for the idea to work?
+2. **Tests the most fragile assumption** with a 1-hour pilot experiment
+3. **Cross-validates with literature** — has this been tried before?
+4. **Defines kill criteria** — what result would prove the idea wrong?
+5. **Runs minimum viable experiment** — 5-10 episodes, throwaway code
+
+**Kill criteria from GraphVLA failure:**
+- If the core mechanism HURTS the baseline → idea is fundamentally broken
+- If the baseline already achieves near-perfect performance → no room for improvement
+- If the approach requires changing input distribution of a frozen model → high risk
+
+**If assumption fails → ABANDON or PIVOT.** Do NOT proceed to implementation.
+Do NOT rationalize "maybe it'll work with more engineering."
+
+**Why this gate exists:**
+GraphVLA spent 15K lines of code and dozens of GPU-hours building a system
+whose core assumption (instruction swapping doesn't break VLAs) was falsified
+by a 10-minute pilot. This gate ensures that never happens again.
+
+---
+
 ### Stage 2: Implementation
 
-Once an idea is confirmed:
+Once an idea is confirmed AND validated (Gate 1b passed):
 
 1. **Implement the method** — model architecture, training loop, evaluation scripts
 2. **Implement baselines** — matching compute and data
@@ -279,3 +309,43 @@ Internally: `/paper-plan` → `/paper-figure` → `/paper-write` → `/paper-com
 - **The reviewer (GPT-5.4) must be told whether results are real or oracle.** Hiding this from the reviewer produces inflated scores.
 - **If training takes too long**, use a pretrained model and fine-tune, or use a simpler task. Do not substitute oracle mode for real execution.
 - **Fail gracefully**: If Gate 2 or 3 fails, report what's missing and estimate the cost to fix it. Let the user decide — but DO NOT decide for them by silently skipping.
+
+## Early Problem Detection and Rollback
+
+**Problems must be identified at the EARLIEST possible stage, not the latest.**
+
+| Problem | When to detect | How to detect | Action |
+|---------|---------------|---------------|--------|
+| Bad idea (core assumption wrong) | **Gate 1b** (before implementation) | 1-hour pilot experiment | ABANDON or PIVOT |
+| Wrong benchmark | **Gate 1b** (before implementation) | Check if baseline is 0% or 100% — no room for improvement | Choose different benchmark |
+| Changing input distribution of frozen model | **Gate 1b** | Pilot: does modifying input hurt performance? | Don't modify inputs of frozen models |
+| Oracle masking real problems | **Gate 2b** (pilot) | Run 1 real episode, check frames are real | Never use oracle as primary eval |
+| Wrong experimental setting | **Gate 3** (after first result) | First result is 0% or 100% across all modes | Pivot benchmark/setting immediately |
+| Framework is inert (no improvement) | **Gate 3** (after first ablation) | GraphVLA = baseline on first experiment | Diagnose why, fix or abandon |
+
+**Rollback Protocol:**
+When a problem is detected, the pipeline does NOT continue forward. Instead:
+
+1. **STOP** all running experiments
+2. **DIAGNOSE** the root cause (not the symptom)
+3. **DECIDE**: fix, pivot, or abandon
+   - **Fix**: if the problem is implementation (e.g., black images)
+   - **Pivot**: if the problem is the approach but the direction is viable
+   - **Abandon**: if the core assumption is falsified
+4. **DOCUMENT** what went wrong and why in FAILURE_LOG.md
+5. **RESUME** only after the fix is validated with a pilot
+
+**Time limits for each stage:**
+- Idea validation (Gate 1b): 1-4 hours max
+- Implementation: 1-2 days max before first real result
+- First real experiment: must produce result within 4 hours of submission
+- If any stage exceeds 2x its expected duration → stop and diagnose
+
+**The cost of detecting a problem:**
+- At Gate 1b: 1 hour wasted
+- At Gate 2: 1 day wasted
+- At Gate 3: 1 week wasted
+- At paper writing: 1 month wasted
+- After submission: career damage
+
+**ALWAYS prefer early detection over continued hope.**
